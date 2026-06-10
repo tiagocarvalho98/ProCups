@@ -39,6 +39,18 @@ const defaultOrders = [
     customer: "Tiago Martins",
     email: "tiago@email.pt",
     phone: "910 000 001",
+    customerDetails: {
+      name: "Tiago Martins",
+      email: "tiago@email.pt",
+      phone: "910 000 001",
+    },
+    shippingAddress: {
+      address: "Rua Exemplo 12",
+      city: "Lisbon",
+      postal: "1000-001",
+      country: "Portugal",
+    },
+    address: "Rua Exemplo 12, 1000-001 Lisbon",
     product: "Benfica ProCups",
     total: 29.9,
     units: 2,
@@ -51,6 +63,18 @@ const defaultOrders = [
     customer: "Marta Silva",
     email: "marta@email.pt",
     phone: "910 000 002",
+    customerDetails: {
+      name: "Marta Silva",
+      email: "marta@email.pt",
+      phone: "910 000 002",
+    },
+    shippingAddress: {
+      address: "Avenida Central 45",
+      city: "Porto",
+      postal: "4000-002",
+      country: "Portugal",
+    },
+    address: "Avenida Central 45, 4000-002 Porto",
     product: "Sporting ProCups",
     total: 29.9,
     units: 2,
@@ -667,21 +691,26 @@ function adminMetrics() {
 function ordersTable() {
   return `
     <table class="data-table">
-      <thead><tr><th>Order</th><th>Customer</th><th>Product</th><th>Units</th><th>Total</th><th>Status</th><th>Payment</th></tr></thead>
+      <thead><tr><th>Order</th><th>Customer</th><th>Contact</th><th>Ship to</th><th>Product</th><th>Total</th><th>Status</th><th>Payment</th></tr></thead>
       <tbody>
         ${state.orders
           .map(
-            (order) => `
-              <tr>
-                <td><strong>${order.id}</strong></td>
-                <td>${order.customer}<br /><span>${order.email}</span></td>
-                <td>${order.product}</td>
-                <td>${order.units}</td>
-                <td>${money(order.total)}</td>
-                <td><span class="badge ${order.status === "Shipped" ? "green" : order.status === "New" ? "red" : "blue"}">${order.status}</span></td>
-                <td>${order.payment}</td>
-              </tr>
-            `
+            (order) => {
+              const customer = orderCustomerDetails(order);
+              const shipping = orderShippingAddress(order);
+              return `
+                <tr>
+                  <td><strong>${order.id}</strong></td>
+                  <td>${customer.name}<br /><span>${order.channel || "Website"}</span></td>
+                  <td>${customer.email}<br /><span>${customer.phone || "No phone"}</span></td>
+                  <td>${shipping.address || "No address"}<br /><span>${[shipping.postal, shipping.city].filter(Boolean).join(" ") || shipping.country}</span></td>
+                  <td>${order.product}<br /><span>${order.units} unit${order.units === 1 ? "" : "s"}</span></td>
+                  <td>${money(order.total)}</td>
+                  <td><span class="badge ${order.status === "Shipped" ? "green" : order.status === "New" ? "red" : "blue"}">${order.status}</span></td>
+                  <td>${order.payment}</td>
+                </tr>
+              `;
+            }
           )
           .join("")}
       </tbody>
@@ -693,6 +722,28 @@ function orderById(orderId) {
   return state.orders.find((order) => order.id === orderId);
 }
 
+function orderCustomerDetails(order) {
+  return {
+    name: order.customerDetails?.name || order.customer || "Unknown customer",
+    email: order.customerDetails?.email || order.email || "",
+    phone: order.customerDetails?.phone || order.phone || "",
+  };
+}
+
+function orderShippingAddress(order) {
+  return {
+    address: order.shippingAddress?.address || order.address || "",
+    city: order.shippingAddress?.city || "",
+    postal: order.shippingAddress?.postal || "",
+    country: order.shippingAddress?.country || "Portugal",
+  };
+}
+
+function formatShippingAddress(order) {
+  const shipping = orderShippingAddress(order);
+  return [shipping.address, [shipping.postal, shipping.city].filter(Boolean).join(" "), shipping.country].filter(Boolean).join(", ") || "Address captured at checkout.";
+}
+
 function orderStatusClass(status) {
   if (status === "Shipped" || status === "Paid") return "green";
   if (status === "New" || status === "Cancelled") return "red";
@@ -701,14 +752,17 @@ function orderStatusClass(status) {
 
 function renderOrderCard(order) {
   const nextStatus = nextOrderStatus[order.status];
+  const customer = orderCustomerDetails(order);
+  const shipping = orderShippingAddress(order);
   return `
     <article class="order-mini-card" data-order-open="${order.id}">
       <div>
         <strong>${order.id}</strong>
         <span class="badge ${orderStatusClass(order.status)}">${order.status}</span>
       </div>
-      <h3>${order.customer}</h3>
-      <p>${order.product}</p>
+      <h3>${customer.name}</h3>
+      <p>${customer.phone || customer.email}</p>
+      <p>${shipping.city ? `${shipping.city}, ${shipping.postal}` : order.product}</p>
       <div class="order-mini-meta">
         <span>${order.units} unit${order.units === 1 ? "" : "s"}</span>
         <strong>${money(order.total)}</strong>
@@ -725,6 +779,8 @@ function renderOrderDetail() {
   const order = orderById(state.selectedOrderId);
   if (!order) return "";
   const nextStatus = nextOrderStatus[order.status];
+  const customer = orderCustomerDetails(order);
+  const shipping = orderShippingAddress(order);
   return `
     <aside class="order-detail-panel" data-order-panel>
       <div class="drawer-header">
@@ -737,8 +793,13 @@ function renderOrderDetail() {
       <div class="order-detail-body">
         <section>
           <span class="badge ${orderStatusClass(order.status)}">${order.status}</span>
-          <h3>${order.customer}</h3>
-          <p>${order.email}<br />${order.phone || ""}</p>
+          <h3>${customer.name}</h3>
+          <div class="detail-grid">
+            <div><span>Email</span><strong>${customer.email || "Not provided"}</strong></div>
+            <div><span>Phone</span><strong>${customer.phone || "Not provided"}</strong></div>
+            <div><span>Source</span><strong>${order.channel || "Website"}</strong></div>
+            <div><span>Payment</span><strong>${order.payment}</strong></div>
+          </div>
         </section>
         <section>
           <h4>Items</h4>
@@ -746,8 +807,14 @@ function renderOrderDetail() {
           <strong>${order.units} unit${order.units === 1 ? "" : "s"} · ${money(order.total)}</strong>
         </section>
         <section>
-          <h4>Shipping</h4>
-          <p>${order.address || "Address captured at checkout."}</p>
+          <h4>Shipping details</h4>
+          <div class="detail-grid">
+            <div><span>Address</span><strong>${shipping.address || "Not provided"}</strong></div>
+            <div><span>City</span><strong>${shipping.city || "Not provided"}</strong></div>
+            <div><span>Postal code</span><strong>${shipping.postal || "Not provided"}</strong></div>
+            <div><span>Country</span><strong>${shipping.country || "Portugal"}</strong></div>
+          </div>
+          <p>${formatShippingAddress(order)}</p>
         </section>
         <section>
           <h4>Internal notes</h4>
@@ -870,13 +937,17 @@ function adminContent() {
       </section>`;
   }
   if (state.adminTab === "customers") {
-    const customers = state.orders.map((order) => ({ name: order.customer, email: order.email, phone: order.phone, channel: order.channel }));
+    const customers = state.orders.map((order) => {
+      const customer = orderCustomerDetails(order);
+      const shipping = orderShippingAddress(order);
+      return { ...customer, channel: order.channel, address: shipping.address, city: shipping.city, postal: shipping.postal, country: shipping.country };
+    });
     return `
       <section class="table-card">
         <div class="table-header"><div><h2>Customers</h2><p>Contacts captured through guest checkout.</p></div></div>
         <table class="data-table">
-          <thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Source</th></tr></thead>
-          <tbody>${customers.map((customer) => `<tr><td><strong>${customer.name}</strong></td><td>${customer.email}</td><td>${customer.phone}</td><td>${customer.channel}</td></tr>`).join("")}</tbody>
+          <thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Address</th><th>City</th><th>Postal</th><th>Source</th></tr></thead>
+          <tbody>${customers.map((customer) => `<tr><td><strong>${customer.name}</strong></td><td>${customer.email}</td><td>${customer.phone}</td><td>${customer.address || "No address"}</td><td>${customer.city || "-"}</td><td>${customer.postal || "-"}</td><td>${customer.channel}</td></tr>`).join("")}</tbody>
         </table>
       </section>`;
   }
@@ -965,12 +1036,23 @@ function submitCheckout(form) {
       customer: data.name,
       email: data.email,
       phone: data.phone,
+      customerDetails: {
+        name: data.name,
+        email: data.email,
+        phone: data.phone,
+      },
       product: productsLabel,
       total: orderTotal(),
       units,
       status: "New",
       payment: "Pending",
       channel: "Website",
+      shippingAddress: {
+        address: data.address,
+        city: data.city,
+        postal: data.postal,
+        country: "Portugal",
+      },
       address: `${data.address}, ${data.postal} ${data.city}`,
       notes: data.notes || "",
       campaigns: activeCampaigns().map((campaign) => campaign.name),

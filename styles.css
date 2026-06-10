@@ -1260,6 +1260,33 @@ h2 {
   color: var(--muted);
 }
 
+.detail-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.detail-grid div {
+  display: grid;
+  gap: 4px;
+  padding: 10px;
+  border: 1px solid #d9dde5;
+  border-radius: 8px;
+  background: #f7f8fa;
+}
+
+.detail-grid span {
+  color: #56616f;
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.detail-grid strong {
+  overflow-wrap: anywhere;
+  font-size: 13px;
+}
+
 .timeline-list {
   display: grid;
   gap: 8px;
