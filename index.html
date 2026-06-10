@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ProCups | PS5 Controller Stands</title>
+    <meta
+      name="description"
+      content="ProCups creates custom PS5 controller stands with club and national team emblems. Buy 1 Get 2 launch offer for a limited time."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&family=Rubik:wght@500;600;700;800;900&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="promo-bar" data-promo-bar>
+      <span>Buy 1 Get 2</span>
+      Limited time offer.
+    </div>
+
+    <header class="site-header" data-site-header>
+      <a class="brand" href="#loja" aria-label="ProCups home">
+        <img src="assets/logotipo/logo procups.png" alt="ProCups" />
+      </a>
+      <nav class="main-nav" aria-label="Main navigation">
+        <a href="#loja" data-route="store">Shop All</a>
+        <a href="#produtos" data-route="store">Best Sellers</a>
+        <a href="#personalizar" data-route="store">How it works</a>
+      </nav>
+      <button class="cart-button" type="button" data-open-cart>
+        <span>Cart</span>
+        <strong data-cart-count>0</strong>
+      </button>
+    </header>
+
+    <main id="app"></main>
+
+    <aside class="cart-drawer" data-cart-drawer aria-hidden="true">
+      <div class="drawer-panel">
+        <div class="drawer-header">
+          <div>
+            <p class="eyebrow">Checkout</p>
+            <h2>Your cart</h2>
+          </div>
+          <button class="icon-button" type="button" data-close-cart aria-label="Close cart">x</button>
+        </div>
+        <div class="cart-lines" data-cart-lines></div>
+        <div class="cart-summary">
+          <div>
+            <span>Subtotal</span>
+            <strong data-cart-subtotal>0,00 EUR</strong>
+          </div>
+          <div>
+            <span>Campaign discount</span>
+            <strong data-cart-free>0 units</strong>
+          </div>
+          <div>
+            <span>Shipping</span>
+            <strong data-cart-shipping>0,00 EUR</strong>
+          </div>
+          <button class="primary-button" type="button" data-checkout>Checkout</button>
+          <p>Guest checkout. No account required.</p>
+        </div>
+      </div>
+    </aside>
+
+    <script src="app.js"></script>
+  </body>
+</html>
